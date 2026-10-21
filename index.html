@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101014">
+  <title>Nexcut — Video Editor</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101014;
+      --panel: #19191f;
+      --border: #30303a;
+      --accent: #7775ff;
+      --text: #f5f5fa;
+      --muted: #a3a3b2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, Arial, sans-serif;
+    }
+
+    button, input { font: inherit; }
+
+    button, .upload-button {
+      border: 1px solid var(--border);
+      background: #24242d;
+      color: var(--text);
+      padding: 11px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 42px;
+    }
+
+    button:active, .upload-button:active {
+      transform: scale(.98);
+    }
+
+    button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    header {
+      height: 62px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 5;
+    }
+
+    .brand {
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .brand span { color: var(--accent); }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    main {
+      width: min(100%, 950px);
+      margin: auto;
+      padding: 18px 14px 100px;
+    }
+
+    .heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    h1 { font-size: 22px; margin: 0; }
+    h2 { font-size: 16px; margin: 0 0 14px; }
+    p { line-height: 1.5; }
+
+    .muted { color: var(--muted); font-size: 13px; }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 14px;
+      min-width: 0;
+    }
+
+    .preview {
+      background: #09090c;
+      border-radius: 10px;
+      min-height: 210px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    video {
+      display: block;
+      width: 100%;
+      max-height: 52vh;
+      object-fit: contain;
+      background: #09090c;
+    }
+
+    .empty-state {
+      padding: 25px 15px;
+      text-align: center;
+    }
+
+    .empty-icon { font-size: 42px; margin-bottom: 8px; }
+
+    .upload-button {
+      background: var(--accent);
+      border-color: var(--accent);
+      margin-top: 12px;
+    }
+
+    .hidden-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .controls button { flex: 1 1 auto; }
+
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 12px 0 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .timeline-track {
+      background: #0c0c11;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .clip {
+      background: #29283f;
+      border: 1px solid #5551a8;
+      border-radius: 7px;
+      min-height: 43px;
+      display: flex;
+      align-items: center;
+      padding: 9px;
+      gap: 8px;
+      font-size: 12px;
+      overflow: hidden;
+    }
+
+    .clip-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .number-input {
+      width: 100%;
+      background: #0d0d12;
+      color: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .status {
+      font-size: 12px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+      margin: 10px 0 0;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      z-index: 6;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #141419;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 9px 5px calc(9px + env(safe-area-inset-bottom));
+    }
+
+    .bottom-nav button {
+      border: 0;
+      background: transparent;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 11px;
+      padding: 5px 10px;
+      min-height: 48px;
+    }
+
+    .bottom-nav button.active { color: #a5a3ff; }
+    .nav-icon { font-size: 19px; }
+
+    @media (min-width: 700px) {
+      main { padding-top: 26px; }
+      .editor-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(230px, 1fr);
+        gap: 14px;
+        align-items: start;
+      }
+      .editor-grid > .panel { margin-bottom: 14px; }
+      .preview { min-height: 300px; }
+    }
+
+    @media (max-width: 380px) {
+      .brand { font-size: 20px; }
+      .header-actions button { padding: 9px; }
+      main { padding-left: 10px; padding-right: 10px; }
+      .panel { padding: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">NEX<span>CUT</span></div>
+    <div class="header-actions">
+      <button id="newBtn" type="button">＋ New</button>
+      <button id="importBtn" class="primary" type="button">Import</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="heading">
+      <div>
+        <h1>Video Editor</h1>
+        <div class="muted">Create something amazing.</div>
+      </div>
+      <span class="muted" id="projectState">No project</span>
+    </div>
+
+    <input id="fileInput" class="hidden-input" type="file"
+      accept="video/*" aria-label="Choose a video">
+
+    <div class="editor-grid">
+      <section class="panel">
+        <h2>Preview</h2>
+
+        <div class="preview" id="preview">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">🎬</div>
+            <strong>Your next creation starts here</strong>
+            <p class="muted">Import a video from your device to get started.</p>
+            <label for="fileInput" class="upload-button">＋ Import video</label>
+          </div>
+          <video id="video" hidden playsinline preload="metadata"></video>
+        </div>
+
+        <div class="time-row">
+          <span id="currentTime">00:00.0</span>
+          <span id="totalTime">00:00.0</span>
+        </div>
+
+        <input id="seekBar" type="range" min="0" max="1000"
+          value="0" aria-label="Seek video" disabled>
+
+        <div class="controls">
+          <button id="backBtn" type="button" disabled>↶ 5s</button>
+          <button id="playBtn" class="primary" type="button" disabled>▶ Play</button>
+          <button id="forwardBtn" type="button" disabled>5s ↷</button>
+          <button id="muteBtn" type="button" disabled>🔊 Sound</button>
+        </div>
+
+        <p class="status" id="status" role="status" aria-live="polite">
+          Ready to import a video.
+        </p>
+      </section>
+
+      <div>
+        <section class="panel">
+          <div class="section-title">
+            <h2>Timeline</h2>
+            <span class="muted" id="clipDuration">0 clips</span>
+          </div>
+
+          <div class="timeline-track">
+            <div class="clip">
+              <span>🎞</span>
+              <span class="clip-name" id="clipName">No video selected</span>
+              <span id="clipLength">—</span>
+            </div>
+          </div>
+
+          <p class="muted">
+            Use the trim controls below to choose a section for export.
+          </p>
+        </section>
+
+        <section class="panel">
+          <h2>Trim video</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="trimStart">Start (seconds)</label>
+              <input id="trimStart" class="number-input"
+                type="number" min="0" step="0.1" value="0" disabled>
+            </div>
+            <div class="field">
+              <label for="trimEnd">End (seconds)</label>
+              <input id="trimEnd" class="number-input"
+                type="number" min="0" step="0.1" value="0" disabled>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="setStartBtn" type="button" disabled>Set start here</button>
+            <button id="setEndBtn" type="button" disabled>Set end here</button>
+          </div>
+          <p class="status" id="trimStatus">Import a video to enable trimming.</p>
+        </section>
+
+        <section class="panel">
+          <h2>Video details</h2>
+          <p class="muted" id="videoDetails">No video loaded.</p>
+          <div class="controls">
+            <button id="downloadBtn" type="button" disabled>
+              Export trimmed video
+            </button>
+          </div>
+          <p class="status">
+            Export availability depends on your browser's media support.
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="active" type="button" data-tab="editor">
+      <span class="nav-icon">✂</span>Editor
+    </button>
+    <button type="button" data-tab="timeline">
+      <span class="nav-icon">▤</span>Timeline
+    </button>
+    <button type="button" data-tab="media">
+      <span class="nav-icon">▣</span>Media
+    </button>
+    <button type="button" data-tab="settings">
+      <span class="nav-icon">⚙</span>Settings
+    </button>
+  </nav>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const $ = id => document.getElementById(id);
+      const video = $('video');
+      const fileInput = $('fileInput');
+
+      let videoURL = null;
+      let selectedFile = null;
+      let trimStart = 0;
+      let trimEnd = 0;
+      let exporting = false;
+      let exportRecorder = null;
+      let exportStream = null;
+      let exportChunks = [];
+      let exportCanvas = null;
+      let exportContext = null;
+      let exportAnimation = null;
+      let audioContext = null;
+      let audioSource = null;
+      let audioDestination = null;
+
+      const formatTime = seconds => {
+        if (!Number.isFinite(seconds)) return '00:00.0';
+        seconds = Math.max(0, seconds);
+        const minutes = Math.floor(seconds / 60);
+        const secs = (seconds % 60).toFixed(1).padStart(4, '0');
+        return String(minutes).padStart(2, '0') + ':' + secs;
+      };
+
+      const setStatus = message => {
+        $('status').textContent = message;
+      };
+
+      const enableControls = enabled => {
+        [
+          'seekBar', 'playBtn', 'backBtn', 'forwardBtn',
+          'muteBtn', 'trimStart', 'trimEnd', 'setStartBtn',
+          'setEndBtn', 'downloadBtn'
+        ].forEach(id => $(id).disabled = !enabled);
+      };
+
+      function updateTimeline() {
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        $('currentTime').textContent = formatTime(video.currentTime);
+        $('totalTime').textContent = formatTime(duration);
+        $('clipDuration').textContent = selectedFile ? '1 clip' : '0 clips';
+        $('clipName').textContent = selectedFile
+          ? selectedFile.name : 'No video selected';
+        $('clipLength').textContent = selectedFile
+          ? formatTime(Math.max(0, trimEnd - trimStart)) : '—';
+
+        $('trimStatus').textContent = selectedFile
+          ? 'Selected section: ' + formatTime(trimStart) +
+            ' – ' + formatTime(trimEnd)
+          : 'Import a video to enable trimming.';
+      }
+
+      function updateSeekBar() {
+        if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+        $('seekBar').value = Math.round(
+          (video.currentTime / video.duration) * 1000
+        );
+        updateTimeline();
+      }
+
+      function setTrimValues(start, end) {
+        const duration = video.duration;
+        trimStart = Math.max(0, Math.min(Number(start) || 0, duration));
+        trimEnd = Math.max(trimStart, Math.min(Number(end) || 0, duration));
+
+        $('trimStart').value = trimStart.toFixed(1);
+        $('trimEnd').value = trimEnd.toFixed(1);
+        updateTimeline();
+      }
+
+      function stopExport() {
+        if (exportAnimation) cancelAnimationFrame(exportAnimation);
+        exportAnimation = null;
+
+        if (exportRecorder && exportRecorder.state !== 'inactive') {
+          exportRecorder.stop();
+        }
+
+        exporting = false;
+        exportRecorder = null;
+
+        if (exportStream) {
+          exportStream.getTracks().forEach(track => track.stop());
+        }
+        exportStream = null;
+
+        if (audioSource) {
+          try { audioSource.disconnect(); } catch (_) {}
+        }
+        audioSource = null;
+
+        if (audioContext) {
+          audioContext.close().catch(() => {});
+        }
+        audioContext = null;
+        audioDestination = null;
+        exportCanvas = null;
+        exportContext = null;
+      }
+
+      function resetEditor() {
+        if (exporting) stopExport();
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+
+        if (videoURL) URL.revokeObjectURL(videoURL);
+        videoURL = null;
+        selectedFile = null;
+        trimStart = 0;
+        trimEnd = 0;
+        fileInput.value = '';
+
+        video.hidden = true;
+        $('emptyState').hidden = false;
+        $('projectState').textContent = 'No project';
+        $('videoDetails').textContent = 'No video loaded.';
+        $('trimStart').value = '0';
+        $('trimEnd').value = '0';
+        $('seekBar').value = 0;
+        $('playBtn').textContent = '▶ Play';
+        $('muteBtn').textContent = '🔊 Sound';
+        enableControls(false);
+        updateTimeline();
+        setStatus('Ready to import a video.');
+      }
+
+      function importVideo(file) {
+        if (!file) return;
+
+        if (!file.type.startsWith('video/')) {
+          setStatus('Please choose a supported video file.');
+          return;
+        }
+
+        if (exporting) stopExport();
+        if (videoURL) URL.revokeObjectURL(videoURL);
+
+        video.pause();
+        selectedFile = file;
+        videoURL = URL.createObjectURL(file);
+        video.src = videoURL;
+        video.hidden = false;
+        $('emptyState').hidden = true;
+        $('projectState').textContent = 'Video loaded';
+        $('videoDetails').textContent = file.name + ' · ' +
+          (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+        setStatus('Loading video metadata…');
+
+        video.onloadedmetadata = () => {
+          if (!Number.isFinite(video.duration)) {
+            setStatus('This video format cannot be edited in this browser.');
+            return;
+          }
+
+          setTrimValues(0, video.duration);
+          enableControls(true);
+          updateSeekBar();
+
+          $('videoDetails').textContent =
+            file.name + ' · ' +
+            (file.size / (1024 * 1024)).toFixed(1) + ' MB · ' +
+            video.videoWidth + ' × ' + video.videoHeight;
+
+          setStatus('Video ready. Press Play to preview.');
+        };
+
+        video.onerror = () => {
+          enableControls(false);
+          setStatus('Unable to play this video. Try another supported file.');
+        };
+
+        fileInput.value = '';
+      }
+
+      $('importBtn').addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', () => importVideo(fileInput.files[0]));
+      $('newBtn').addEventListener('click', resetEditor);
+
+      $('playBtn').addEventListener('click', async () => {
+        if (!selectedFile) return;
+
+        if (video.paused) {
+          if (video.currentTime < trimStart || video.currentTime >= trimEnd) {
+            video.currentTime = trimStart;
+          }
+
+          try {
+            await video.play();
+          } catch (_) {
+            setStatus('Playback failed. Try pressing Play again.');
+          }
+        } else {
+          video.pause();
+        }
+      });
+
+      video.addEventListener('play', () => {
+        $('playBtn').textContent = 'Ⅱ Pause';
+      });
+
+      video.addEventListener('pause', () => {
+        $('playBtn').textContent = '▶ Play';
+      });
+
+      video.addEventListener('timeupdate', () => {
+        updateSeekBar();
+
+        if (!exporting && video.currentTime >= trimEnd && !video.paused) {
+          video.pause();
+        }
+      });
+
+      video.addEventListener('ended', () => {
+        $('playBtn').textContent = '▶ Play';
+      });
+
+      $('seekBar').addEventListener('input', () => {
+        if (!Number.isFinite(video.duration)) return;
+        video.currentTime = (Number($('seekBar').value) / 1000) *
+          video.duration;
+      });
+
+      $('backBtn').addEventListener('click', () => {
+        video.currentTime = Math.max(0, video.currentTime - 5);
+      });
+
+      $('forwardBtn').addEventListener('click', () => {
+        video.currentTime = Math.min(video.duration, video.currentTime + 5);
+      });
+
+      $('muteBtn').addEventListener('click', () => {
+        video.muted = !video.muted;
+        $('muteBtn').textContent = video.muted ? '🔇 Muted' : '🔊 Sound';
+      });
+
+      $('setStartBtn').addEventListener('click', () => {
+        setTrimValues(Math.min(video.currentTime, trimEnd), trimEnd);
+      });
+
+      $('setEndBtn').addEventListener('click', () => {
+        setTrimValues(trimStart, Math.max(video.currentTime, trimStart));
+      });
+
+      $('trimStart').addEventListener('change', () => {
+        setTrimValues($('trimStart').value, trimEnd);
+      });
+
+      $('trimEnd').addEventListener('change', () => {
+        setTrimValues(trimStart, $('trimEnd').value);
+      });
+
+      /*
+       * Export uses real-time canvas recording.
+       * Browser and video-codec support vary. This is not frame-accurate
+       * offline rendering, and the export runs at playback speed.
+       */
+      async function exportTrimmedVideo() {
+        if (!selectedFile || exporting) return;
+
+        if (!HTMLCanvasElement.prototype.captureStream ||
+            typeof MediaRecorder === 'undefined') {
+          setStatus('Video export is not supported by this browser.');
+          return;
+        }
+
+        const supportedType = [
+          'video/webm;codecs=vp9,opus',
+          'video/webm;codecs=vp8,opus',
+          'video/webm'
+        ].find(type => MediaRecorder.isTypeSupported(type));
+
+        if (!supportedType) {
+          setStatus('No supported WebM export codec was found.');
+          return;
+        }
+
+        if (trimEnd <= trimStart) {
+          setStatus('Choose a valid trim range before exporting.');
+          return;
+        }
+
+        exporting = true;
+        exportChunks = [];
+        $('downloadBtn').disabled = true;
+        setStatus('Preparing video export…');
+
+        try {
+          video.pause();
+          video.currentTime = trimStart;
+
+          await new Promise((resolve, reject) => {
+            const onReady = () => {
+              cleanup();
+              resolve();
+            };
+            const onError = () => {
+              cleanup();
+              reject(new Error('Could not prepare video.'));
+            };
+            const cleanup = () => {
+              video.removeEventListener('seeked', onReady);
+              video.removeEventListener('error', onError);
+            };
+
+            video.addEventListener('seeked', onReady);
+            video.addEventListener('error', onError);
+
+            if (Math.abs(video.currentTime - trimStart) < 0.01) {
+              cleanup();
+              resolve();
+            }
+          });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 1280;
+          canvas.height = video.videoHeight || 720;
+          exportCanvas = canvas;
+          exportContext = canvas.getContext('2d');
+
+          if (!exportContext) throw new Error('Canvas is unavailable.');
+
+          exportStream = canvas.captureStream(30);
+
+          if (video.captureStream) {
+            const originalStream = video.captureStream();
+            const audioTracks = originalStream.getAudioTracks();
+
+            audioTracks.forEach(track => exportStream.addTrack(track));
+          } else if (video.mozCaptureStream) {
+            const originalStream = video.mozCaptureStream();
+            originalStream.getAudioTracks().forEach(track =>
+              exportStream.addTrack(track)
+            );
+          }
+
+          exportRecorder = new MediaRecorder(exportStream, {
+            mimeType: supportedType
+          });
+
+          exportRecorder.ondataavailable = event => {
+            if (event.data && event.data.size > 0) {
+              exportChunks.push(event.data);
+            }
+          };
+
+          exportRecorder.onerror = () => {
+            setStatus('Export failed. Try a shorter video.');
+            stopExport();
+            $('downloadBtn').disabled = false;
+          };
+
+          exportRecorder.onstop = () => {
+            if (exportChunks.length) {
+              const blob = new Blob(exportChunks, { type: supportedType });
+              const downloadURL = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = downloadURL;
+              link.download = 'nexcut-export.webm';
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+
+              setTimeout(() => URL.revokeObjectURL(downloadURL), 60000);
+              setStatus('Export complete. Saved nexcut-export.webm.');
+            } else {
+              setStatus('No video data was recorded. Try again.');
+            }
+
+            stopExport();
+            $('downloadBtn').disabled = false;
+          };
+
+          const drawFrame = () => {
+            if (!exporting || !exportContext) return;
+
+            exportContext.drawImage(
+              video, 0, 0, canvas.width, canvas.height
+            );
+
+            if (video.currentTime >= trimEnd || video.ended) {
+              video.pause();
+              if (exportRecorder &&
+                  exportRecorder.state !== 'inactive') {
+                exportRecorder.stop();
+              }
+              return;
+            }
+
+            exportAnimation = requestAnimationFrame(drawFrame);
+          };
+
+          exportRecorder.start(250);
+          await video.play();
+          drawFrame();
+          setStatus('Exporting in real time… Keep this page open.');
+        } catch (error) {
+          stopExport();
+          $('downloadBtn').disabled = false;
+          setStatus('Export could not start: ' + error.message);
+        }
+      }
+
+      $('downloadBtn').addEventListener('click', exportTrimmedVideo);
+
+      document.querySelectorAll('[data-tab]').forEach(button => {
+        button.addEventListener('click', () => {
+          document.querySelectorAll('[data-tab]').forEach(item =>
+            item.classList.toggle('active', item === button)
+          );
+
+          const tab = button.dataset.tab;
+
+          if (tab === 'media') {
+            fileInput.click();
+          } else if (tab === 'timeline') {
+            document.querySelector('.timeline-track').scrollIntoView({
+              behavior: 'smooth', block: 'center'
+            });
+          } else if (tab === 'settings') {
+            alert('Nexcut settings will be added in a future update.');
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      });
+
+      window.addEventListener('beforeunload', () => {
+        if (videoURL) URL.revokeObjectURL(videoURL);
+      });
+
+      resetEditor();
+    })();
+  </script>
+</body>
+  </html>
