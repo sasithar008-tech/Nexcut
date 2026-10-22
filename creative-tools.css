@@ -1,0 +1,149 @@
+
+.nx-preview {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.nx-title {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  max-width: 90%;
+  color: #fff;
+  font: 800 clamp(20px, 5vw, 42px)/1.15
+    system-ui, sans-serif;
+  text-align: center;
+  overflow-wrap: anywhere;
+  text-shadow: 0 2px 12px #000b;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.nx-fade {
+  animation: nxFade 1s ease both;
+}
+
+.nx-slide {
+  animation: nxSlide .7s ease both;
+}
+
+.nx-zoom {
+  animation: nxZoom .8s ease both;
+}
+
+.nx-type {
+  width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: nxType 2s steps(24, end) forwards;
+}
+
+.nx-bounce {
+  animation: nxBounce .8s ease both;
+}
+
+@keyframes nxFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes nxSlide {
+  from {
+    opacity: 0;
+    translate: 0 35px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes nxZoom {
+  from {
+    opacity: 0;
+    scale: .55;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes nxType {
+  to { width: 100%; }
+}
+
+@keyframes nxBounce {
+  0% { opacity: 0; scale: .65; }
+  65% { opacity: 1; scale: 1.08; }
+  100% { scale: 1; }
+}
+
+.nx-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+  color: #f5f5f7;
+  background: #101014;
+  border: 1px solid #292930;
+  border-radius: 16px;
+}
+
+.nx-tools label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.nx-tools input,
+.nx-tools select,
+.nx-tools button {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  color: inherit;
+  background: #1b1b22;
+  border: 1px solid #363640;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.nx-template-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+
+.nx-template-list button {
+  min-width: 125px;
+  min-height: 58px;
+  padding: 10px;
+  color: white;
+  background: #191923;
+  border: 1px solid #34344a;
+  border-radius: 12px;
+}
+
+.nx-template-list button:focus-visible,
+.nx-tools input:focus-visible,
+.nx-tools select:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+
+@media (max-width: 380px) {
+  .nx-tools {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx-title {
+    animation-duration: .01ms !important;
+  }
+}
