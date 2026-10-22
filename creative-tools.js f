@@ -1,0 +1,261 @@
+
+/*
+ * Nexcut Creative Tools
+ * Text overlays, animations, filters, audio and templates.
+ * No external libraries required.
+ */
+
+(() => {
+  "use strict";
+
+  const state = {
+    text: "Your Story",
+    animation: "fade",
+    filter: "none",
+    volume: 0.8,
+    template: "cinematic",
+    audioUrl: null,
+    audioName: "",
+    objectUrls: [],
+  };
+
+  const filters = {
+    none: "none",
+    cinematic: "contrast(1.18) saturate(0.88)",
+    vintage: "sepia(0.35) contrast(1.05)",
+    mono: "grayscale(1)",
+    vivid: "saturate(1.5) contrast(1.08)",
+    cool: "saturate(0.92) hue-rotate(12deg)",
+    warm: "sepia(0.16) saturate(1.15)",
+  };
+
+  const animations = {
+    none: "",
+    fade: "nx-fade",
+    slide: "nx-slide",
+    zoom: "nx-zoom",
+    type: "nx-type",
+    bounce: "nx-bounce",
+  };
+
+  const templates = {
+    cinematic: {
+      text: "THE STORY BEGINS",
+      animation: "fade",
+      filter: "cinematic",
+    },
+    travel: {
+      text: "ADVENTURE AWAITS",
+      animation: "slide",
+      filter: "vivid",
+    },
+    memories: {
+      text: "BEST MEMORIES",
+      animation: "zoom",
+      filter: "warm",
+    },
+    vintage: {
+      text: "A MOMENT IN TIME",
+      animation: "fade",
+      filter: "vintage",
+    },
+    shorts: {
+      text: "WATCH THIS!",
+      animation: "bounce",
+      filter: "vivid",
+    },
+  };
+
+  function init() {
+    const preview = document.querySelector(
+      "#nx-creative-preview"
+    );
+
+    if (!preview) {
+      console.warn(
+        "Nexcut: Add #nx-creative-preview to the editor first."
+      );
+      return;
+    }
+
+    preview.classList.add("nx-preview");
+
+    if (!preview.querySelector(".nx-title")) {
+      const title = document.createElement("div");
+      title.className = "nx-title";
+      title.textContent = state.text;
+      preview.appendChild(title);
+    }
+
+    render();
+    bindControls();
+  }
+
+  function render() {
+    const preview = document.querySelector(
+      "#nx-creative-preview"
+    );
+
+    if (!preview) return;
+
+    const title = preview.querySelector(".nx-title");
+
+    if (title) {
+      title.textContent = state.text;
+
+      title.className = "nx-title";
+
+      const animation = animations[state.animation];
+
+      if (animation) {
+        // Restart CSS animation on each change.
+        void title.offsetWidth;
+        title.classList.add(animation);
+      }
+    }
+
+    const video = preview.querySelector("video");
+
+    if (video) {
+      video.style.filter =
+        filters[state.filter] || "none";
+    }
+
+    const audio = document.querySelector("#nx-audio");
+
+    if (audio) {
+      audio.volume = state.volume;
+    }
+
+    updateStatus();
+  }
+
+  function updateStatus(message) {
+    const status = document.querySelector("#nx-status");
+
+    if (status && message) {
+      status.textContent = message;
+    }
+  }
+
+  function bindControls() {
+    const textInput = document.querySelector("#nx-text");
+
+    textInput?.addEventListener("input", event => {
+      state.text = event.target.value;
+      render();
+    });
+
+    document.querySelector("#nx-animation")
+      ?.addEventListener("change", event => {
+        state.animation = event.target.value;
+        render();
+      });
+
+    document.querySelector("#nx-filter")
+      ?.addEventListener("change", event => {
+        state.filter = event.target.value;
+        render();
+      });
+
+    document.querySelector("#nx-volume")
+      ?.addEventListener("input", event => {
+        state.volume = Number(event.target.value) / 100;
+        render();
+      });
+
+    document.querySelector("#nx-audio-file")
+      ?.addEventListener("change", event => {
+        const file = event.target.files?.[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("audio/")) {
+          updateStatus("Choose a valid audio file.");
+          return;
+        }
+
+        if (state.audioUrl) {
+          URL.revokeObjectURL(state.audioUrl);
+        }
+
+        state.audioUrl = URL.createObjectURL(file);
+        state.audioName = file.name;
+
+        const audio = document.querySelector("#nx-audio");
+        const name = document.querySelector("#nx-audio-name");
+
+        if (audio) {
+          audio.src = state.audioUrl;
+          audio.volume = state.volume;
+          audio.load();
+        }
+
+        if (name) name.textContent = file.name;
+
+        updateStatus("Audio loaded: " + file.name);
+      });
+
+    document.querySelectorAll("[data-nx-template]")
+      .forEach(button => {
+        button.addEventListener("click", () => {
+          const key = button.dataset.nxTemplate;
+          const preset = templates[key];
+
+          if (!preset) return;
+
+          state.template = key;
+          state.text = preset.text;
+          state.animation = preset.animation;
+          state.filter = preset.filter;
+
+          const input = document.querySelector("#nx-text");
+          const animation = document.querySelector(
+            "#nx-animation"
+          );
+          const filter = document.querySelector("#nx-filter");
+
+          if (input) input.value = state.text;
+          if (animation) animation.value = state.animation;
+          if (filter) filter.value = state.filter;
+
+          render();
+          updateStatus("Applied template: " + key);
+        });
+      });
+
+    document.querySelector("#nx-reset")
+      ?.addEventListener("click", () => {
+        state.text = "";
+        state.animation = "none";
+        state.filter = "none";
+
+        const input = document.querySelector("#nx-text");
+        const animation = document.querySelector(
+          "#nx-animation"
+        );
+        const filter = document.querySelector("#nx-filter");
+
+        if (input) input.value = "";
+        if (animation) animation.value = "none";
+        if (filter) filter.value = "none";
+
+        render();
+      });
+  }
+
+  // Expose a small API for the existing editor to integrate.
+  window.NexcutCreative = {
+    init,
+    render,
+    getState: () => ({ ...state }),
+    getFilters: () => ({ ...filters }),
+    getTemplates: () => ({ ...templates }),
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
