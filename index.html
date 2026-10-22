@@ -397,6 +397,78 @@
         </section>
       </div>
     </div>
+
+<link rel="stylesheet" href="./creative-tools.css">
+
+<section class="nx-tools" aria-label="Nexcut creative tools">
+  <label>
+    Text overlay
+    <input id="nx-text" maxlength="120"
+      placeholder="Enter your title">
+  </label>
+
+  <label>
+    Text animation
+    <select id="nx-animation">
+      <option value="none">None</option>
+      <option value="fade">Fade in</option>
+      <option value="slide">Slide in</option>
+      <option value="zoom">Zoom</option>
+      <option value="type">Typing</option>
+      <option value="bounce">Bounce</option>
+    </select>
+  </label>
+
+  <label>
+    Video filter
+    <select id="nx-filter">
+      <option value="none">Original</option>
+      <option value="cinematic">Cinematic</option>
+      <option value="vintage">Vintage</option>
+      <option value="mono">Black & white</option>
+      <option value="vivid">Vivid</option>
+      <option value="cool">Cool</option>
+      <option value="warm">Warm</option>
+    </select>
+  </label>
+
+  <label>
+    Music volume
+    <input id="nx-volume" type="range"
+      min="0" max="100" value="80">
+  </label>
+
+  <label>
+    Import music / sound
+    <input id="nx-audio-file" type="file"
+      accept="audio/*">
+  </label>
+
+  <div>
+    <p id="nx-audio-name">No audio selected</p>
+    <audio id="nx-audio" controls preload="metadata"
+      style="width:100%"></audio>
+  </div>
+</section>
+
+<h3>Quick templates</h3>
+<div class="nx-template-list">
+  <button type="button"
+    data-nx-template="cinematic">Cinematic</button>
+  <button type="button"
+    data-nx-template="travel">Travel</button>
+  <button type="button"
+    data-nx-template="memories">Memories</button>
+  <button type="button"
+    data-nx-template="vintage">Vintage</button>
+  <button type="button"
+    data-nx-template="shorts">Shorts</button>
+</div>
+
+<button type="button" id="nx-reset">Reset creative tools</button>
+<p id="nx-status" role="status" aria-live="polite"></p>
+
+<script src="./creative-tools.js" defer></script>
   </main>
 
   <nav class="bottom-nav" aria-label="Main navigation">
